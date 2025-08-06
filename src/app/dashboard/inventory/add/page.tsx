@@ -26,14 +26,16 @@ import {
 } from '@/components/ui/select';
 import { categories } from '@/lib/data';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { ArrowLeft, PlusCircle, UploadCloud } from 'lucide-react';
+import { useState } from 'react';
+import Image from 'next/image';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.coerce.number().min(1, 'Price must be a positive number'),
   category: z.string({ required_error: 'Please select a category.' }),
-  image: z.string().url('Please enter a valid image URL'),
+  image: z.string().min(1, 'Please upload an image.'),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -41,6 +43,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 export default function AddProductPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const {
     register,
@@ -51,9 +54,37 @@ export default function AddProductPage() {
     resolver: zodResolver(productSchema),
   });
 
+  const handleImageChange = (file: File | null) => {
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+          toast({
+              variant: 'destructive',
+              title: 'File too large',
+              description: 'Please upload an image smaller than 2MB.',
+          });
+          return;
+      }
+      if (!file.type.startsWith('image/')) {
+           toast({
+              variant: 'destructive',
+              title: 'Invalid file type',
+              description: 'Please upload an image file (jpg, png, gif).',
+          });
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setImagePreview(dataUrl);
+        setValue('image', dataUrl, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = (data: ProductFormValues) => {
-    // In a real app, this would submit the data to your backend
-    // and the product would be added with a 'pending' status.
+    // In a real app, this would submit the data (including the base64 image) to your backend
     console.log(data);
     toast({
       title: 'Product Submitted!',
@@ -81,6 +112,43 @@ export default function AddProductPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            
+            <div>
+              <Label>Product Image</Label>
+              <div
+                className="mt-1 flex justify-center rounded-md border-2 border-dashed border-input px-6 pt-5 pb-6"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleImageChange(e.dataTransfer.files[0]);
+                }}
+              >
+                <div className="space-y-1 text-center">
+                  {imagePreview ? (
+                    <div className="relative mx-auto h-40 w-40">
+                      <Image src={imagePreview} alt="Image preview" layout="fill" objectFit="cover" className="rounded-md" />
+                    </div>
+                  ) : (
+                    <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                  )}
+                  <div className="flex text-sm text-muted-foreground">
+                    <Label
+                      htmlFor="file-upload"
+                      className="relative cursor-pointer rounded-md bg-background font-medium text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:text-primary/80"
+                    >
+                      <span>Upload a file</span>
+                      <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={(e) => handleImageChange(e.target.files?.[0] || null)} accept="image/*" />
+                    </Label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 2MB</p>
+                </div>
+              </div>
+               {errors.image && (
+                <p className="text-sm text-destructive mt-1">{errors.image.message}</p>
+              )}
+            </div>
+            
             <div>
               <Label htmlFor="name">Product Name</Label>
               <Input id="name" {...register('name')} />
@@ -107,7 +175,7 @@ export default function AddProductPage() {
               </div>
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select onValueChange={(value) => setValue('category', value)}>
+                <Select onValueChange={(value) => setValue('category', value, { shouldValidate: true })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
@@ -123,15 +191,6 @@ export default function AddProductPage() {
                   <p className="text-sm text-destructive">{errors.category.message}</p>
                 )}
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="image">Product Image URL</Label>
-              <Input id="image" {...register('image')} placeholder="https://placehold.co/600x600.png" />
-                <p className="text-sm text-muted-foreground mt-1">For demo purposes, please use a placeholder URL.</p>
-              {errors.image && (
-                <p className="text-sm text-destructive">{errors.image.message}</p>
-              )}
             </div>
 
             <Button type="submit" className="w-full">
