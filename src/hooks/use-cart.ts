@@ -13,6 +13,7 @@ export interface Product {
   category: string;
   status?: 'pending' | 'approved' | 'rejected';
   'data-ai-hint'?: string;
+  vendorId?: string;
 }
 
 export interface CartItem extends Product {

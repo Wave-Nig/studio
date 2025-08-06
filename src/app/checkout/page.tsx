@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -13,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useCart } from '@/hooks/use-cart';
+import { useCart, type CartItem } from '@/hooks/use-cart';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +37,42 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
+// This is a simulation of a backend process to notify vendors.
+// In a real app, this would be an API call to a server.
+const processOrderAndNotifyVendors = (items: CartItem[], customerName: string) => {
+    if (typeof window === 'undefined') return;
+
+    // Group items by vendor
+    const itemsByVendor = items.reduce((acc, item) => {
+        const vendorId = item.vendorId || 'unknown_vendor';
+        if (!acc[vendorId]) {
+            acc[vendorId] = [];
+        }
+        acc[vendorId].push(item);
+        return acc;
+    }, {} as Record<string, CartItem[]>);
+
+    // Create a notification for each vendor
+    for (const vendorId in itemsByVendor) {
+        const vendorItems = itemsByVendor[vendorId];
+        const totalValue = vendorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        
+        const notification = {
+            id: `notif_${new Date().getTime()}_${Math.random()}`,
+            vendorId,
+            title: 'New Sale!',
+            message: `You sold ${vendorItems.length} product(s) to ${customerName} for a total of ${formatPrice(totalValue)}.`,
+            date: new Date().toISOString(),
+            isRead: false,
+        };
+
+        // Store notifications in localStorage for simulation
+        const existingNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
+        localStorage.setItem('vendor_notifications', JSON.stringify([notification, ...existingNotifications]));
+    }
+};
+
+
 export default function CheckoutPage() {
   const { state, dispatch } = useCart();
   const { toast } = useToast();
@@ -55,7 +92,9 @@ export default function CheckoutPage() {
   });
 
   const onSubmit = (data: CheckoutFormValues) => {
-    console.log('Checkout data:', data);
+    // Simulate processing the order and notifying vendors
+    processOrderAndNotifyVendors(state.items, data.name);
+    
     toast({
       title: 'Order Placed!',
       description: "Thank you for your purchase. This is a simulation.",

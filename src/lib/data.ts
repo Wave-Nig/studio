@@ -17,6 +17,7 @@ export const products: Product[] = [
     category: 'Electronics',
     status: 'approved',
     'data-ai-hint': 'smartphone electronics',
+    vendorId: 'vendor_01',
   },
   {
     id: 'prod_002',
@@ -27,6 +28,7 @@ export const products: Product[] = [
     category: 'Electronics',
     status: 'approved',
     'data-ai-hint': 'wireless earbuds',
+    vendorId: 'vendor_01',
   },
   {
     id: 'prod_003',
@@ -37,6 +39,7 @@ export const products: Product[] = [
     category: 'Groceries',
     status: 'approved',
     'data-ai-hint': 'african dress',
+    vendorId: 'vendor_02',
   },
   {
     id: 'prod_004',
@@ -47,6 +50,7 @@ export const products: Product[] = [
     category: 'Groceries',
     status: 'approved',
     'data-ai-hint': 'leather handbag',
+    vendorId: 'vendor_02',
   },
   {
     id: 'prod_005',
@@ -57,6 +61,7 @@ export const products: Product[] = [
     category: 'Groceries',
     status: 'approved',
     'data-ai-hint': 'cooking pots',
+    vendorId: 'vendor_01',
   },
   {
     id: 'prod_006',
@@ -67,6 +72,7 @@ export const products: Product[] = [
     category: 'Electronics',
     status: 'approved',
     'data-ai-hint': 'electric kettle',
+    vendorId: 'vendor_01',
   },
   {
     id: 'prod_007',
@@ -77,6 +83,7 @@ export const products: Product[] = [
     category: 'Food',
     status: 'approved',
     'data-ai-hint': 'cereal box',
+    vendorId: 'vendor_02',
   },
   {
     id: 'prod_008',
@@ -87,6 +94,7 @@ export const products: Product[] = [
     category: 'Food',
     status: 'approved',
     'data-ai-hint': 'instant noodles',
+    vendorId: 'vendor_02',
   },
   {
     id: 'prod_009',
@@ -97,6 +105,7 @@ export const products: Product[] = [
     category: 'Groceries',
     status: 'pending',
     'data-ai-hint': 'sunglasses fashion',
+    vendorId: 'vendor_01',
   },
   {
     id: 'prod_010',
@@ -107,5 +116,6 @@ export const products: Product[] = [
     category: 'Electronics',
     status: 'pending',
     'data-ai-hint': 'smart watch',
+    vendorId: 'vendor_02',
   },
 ];

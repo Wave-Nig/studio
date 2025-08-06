@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Wallet, Package, LogOut, Store, Shield } from 'lucide-react';
+import { Wallet, Package, LogOut, Store, Shield, Bell } from 'lucide-react';
 
 export default function DashboardPage() {
   // In a real app, you'd have logic to determine the user's role.
@@ -74,13 +74,17 @@ export default function DashboardPage() {
               Vendor Tools
             </CardTitle>
             <CardDescription>
-              Manage your products and view sales.
+              Manage your products and view sales notifications.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-             <p className="text-muted-foreground">Access your vendor profile to manage products.</p>
-            <Button className="mt-4" asChild>
-              <Link href="/dashboard/inventory">Manage Inventory</Link>
+          <CardContent className="grid grid-cols-2 gap-4">
+             <Button asChild>
+              <Link href="/dashboard/inventory">Inventory</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/dashboard/notifications">
+                <Bell className="mr-2" /> Notifications
+              </Link>
             </Button>
           </CardContent>
         </Card>
