@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,11 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Wallet, Package, LogOut, Store } from 'lucide-react';
+import { Wallet, Package, LogOut, Store, Shield } from 'lucide-react';
 
 export default function DashboardPage() {
   // In a real app, you'd have logic to determine the user's role.
-  const userRole = 'consumer'; // or 'vendor'
+  const userRole = 'admin'; // or 'vendor' or 'consumer'
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -66,7 +67,7 @@ export default function DashboardPage() {
         </Card>
         
         {/* This card would be shown for vendors */}
-        <Card className="border-primary border-2">
+        <Card className="border-primary/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Store className="h-5 w-5 text-primary" />
@@ -77,9 +78,28 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <p className="text-muted-foreground">Switch to your vendor profile to access these tools.</p>
+             <p className="text-muted-foreground">Access your vendor profile to manage products.</p>
             <Button className="mt-4" asChild>
               <Link href="/dashboard/inventory">Manage Inventory</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* This card would be shown for Admins */}
+        <Card className="border-primary border-2 col-span-1 md:col-span-2 lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Admin Panel
+            </CardTitle>
+            <CardDescription>
+              Review and approve vendor submissions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+             <p className="text-muted-foreground">You have access to administrative tools.</p>
+            <Button className="mt-4" asChild>
+              <Link href="/dashboard/admin">Go to Admin Panel</Link>
             </Button>
           </CardContent>
         </Card>

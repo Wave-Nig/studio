@@ -1,3 +1,4 @@
+
 import type { Product } from '@/hooks/use-cart';
 
 export const categories = [
@@ -15,6 +16,7 @@ export const products: Product[] = [
     price: 185000,
     image: 'https://placehold.co/600x600.png',
     category: 'Electronics',
+    status: 'approved',
     'data-ai-hint': 'smartphone electronics',
   },
   {
@@ -24,6 +26,7 @@ export const products: Product[] = [
     price: 35000,
     image: 'https://placehold.co/600x600.png',
     category: 'Electronics',
+    status: 'approved',
     'data-ai-hint': 'wireless earbuds',
   },
   {
@@ -33,6 +36,7 @@ export const products: Product[] = [
     price: 25000,
     image: 'https://placehold.co/600x600.png',
     category: 'Fashion',
+    status: 'approved',
     'data-ai-hint': 'african dress',
   },
   {
@@ -42,6 +46,7 @@ export const products: Product[] = [
     price: 45000,
     image: 'https://placehold.co/600x600.png',
     category: 'Fashion',
+    status: 'approved',
     'data-ai-hint': 'leather handbag',
   },
   {
@@ -51,6 +56,7 @@ export const products: Product[] = [
     price: 60000,
     image: 'https://placehold.co/600x600.png',
     category: 'Home Goods',
+    status: 'approved',
     'data-ai-hint': 'cooking pots',
   },
   {
@@ -60,6 +66,7 @@ export const products: Product[] = [
     price: 15000,
     image: 'https://placehold.co/600x600.png',
     category: 'Home Goods',
+    status: 'approved',
     'data-ai-hint': 'electric kettle',
   },
   {
@@ -69,6 +76,7 @@ export const products: Product[] = [
     price: 2500,
     image: 'https://placehold.co/600x600.png',
     category: 'Groceries',
+    status: 'approved',
     'data-ai-hint': 'cereal box',
   },
   {
@@ -78,6 +86,27 @@ export const products: Product[] = [
     price: 8000,
     image: 'https://placehold.co/600x600.png',
     category: 'Groceries',
+    status: 'approved',
     'data-ai-hint': 'instant noodles',
+  },
+  {
+    id: 'prod_009',
+    name: 'Designer Sunglasses',
+    description: 'UV400 protection, stylish and modern design.',
+    price: 22000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Fashion',
+    status: 'pending',
+    'data-ai-hint': 'sunglasses fashion',
+  },
+  {
+    id: 'prod_010',
+    name: 'Smart Watch',
+    description: 'Fitness tracking, heart rate monitor, long battery life.',
+    price: 75000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Electronics',
+    status: 'pending',
+    'data-ai-hint': 'smart watch',
   },
 ];

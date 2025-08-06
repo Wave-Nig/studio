@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,10 +9,12 @@ import { Button } from '@/components/ui/button';
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
+  const approvedProducts = products.filter(p => p.status === 'approved');
+
   const filteredProducts =
     selectedCategory === 'All'
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+      ? approvedProducts
+      : approvedProducts.filter((p) => p.category === selectedCategory);
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useReducer, useContext, type Dispatch } from 'react';
@@ -10,6 +11,7 @@ export interface Product {
   price: number;
   image: string;
   category: string;
+  status?: 'pending' | 'approved' | 'rejected';
   'data-ai-hint'?: string;
 }
 
