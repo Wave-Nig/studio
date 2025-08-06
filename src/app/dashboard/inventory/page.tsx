@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,6 +19,7 @@ import { products } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -33,9 +35,11 @@ export default function InventoryPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="font-headline text-3xl font-bold">Inventory Management</h1>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Product
+        <Button asChild>
+          <Link href="/dashboard/inventory/add">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Product
+          </Link>
         </Button>
       </div>
 
@@ -76,7 +80,7 @@ export default function InventoryPage() {
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">Active</Badge>
+                    <Badge variant={product.status === 'approved' ? 'default' : 'secondary'}>{product.status}</Badge>
                   </TableCell>
                   <TableCell>{formatPrice(product.price)}</TableCell>
                   <TableCell className="hidden md:table-cell">
