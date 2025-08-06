@@ -1,4 +1,7 @@
 
+'use client';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,10 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { products } from '@/lib/data';
+import { products as initialProducts } from '@/lib/data';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import type { Product } from '@/hooks/use-cart';
 
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -28,7 +33,21 @@ const formatPrice = (price: number) => {
   };
 
 export default function AdminPage() {
-  const pendingProducts = products.filter(p => p.status === 'pending');
+  const [pendingProducts, setPendingProducts] = useState<Product[]>(
+    initialProducts.filter(p => p.status === 'pending')
+  );
+  const { toast } = useToast();
+
+  const handleApproval = (productId: string, newStatus: 'approved' | 'rejected') => {
+    setPendingProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+    const productName = initialProducts.find(p => p.id === productId)?.name;
+    toast({
+        title: `Product ${newStatus}`,
+        description: `${productName} has been ${newStatus}.`,
+    });
+    // In a real app, you would also update the product status in your database here.
+  };
+
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -78,11 +97,20 @@ export default function AdminPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="text-success-foreground bg-success hover:bg-success/90">
+                        <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-success-foreground bg-success hover:bg-success/90"
+                            onClick={() => handleApproval(product.id, 'approved')}
+                        >
                             <CheckCircle className="mr-2" />
                             Approve
                         </Button>
-                         <Button size="sm" variant="destructive">
+                         <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleApproval(product.id, 'rejected')}
+                         >
                             <XCircle className="mr-2" />
                             Reject
                         </Button>
