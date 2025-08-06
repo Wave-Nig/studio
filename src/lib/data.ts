@@ -1,0 +1,83 @@
+import type { Product } from '@/hooks/use-cart';
+
+export const categories = [
+  { id: '1', name: 'Electronics' },
+  { id: '2', name: 'Fashion' },
+  { id: '3', name: 'Home Goods' },
+  { id: '4', name: 'Groceries' },
+];
+
+export const products: Product[] = [
+  {
+    id: 'prod_001',
+    name: 'Infinix Smart 8',
+    description: '6.6" HD+ Display, 4GB RAM, 64GB ROM, 5000mAh Battery',
+    price: 185000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Electronics',
+    'data-ai-hint': 'smartphone electronics',
+  },
+  {
+    id: 'prod_002',
+    name: 'Oraimo FreePods 4',
+    description: 'Active Noise Cancellation, 35.5-hr long playtime',
+    price: 35000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Electronics',
+    'data-ai-hint': 'wireless earbuds',
+  },
+  {
+    id: 'prod_003',
+    name: 'Classic Ankara Gown',
+    description: '100% cotton, vibrant patterns, available in all sizes.',
+    price: 25000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Fashion',
+    'data-ai-hint': 'african dress',
+  },
+  {
+    id: 'prod_004',
+    name: 'Leather Handbag',
+    description: 'Genuine leather, spacious interior, with a timeless design.',
+    price: 45000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Fashion',
+    'data-ai-hint': 'leather handbag',
+  },
+  {
+    id: 'prod_005',
+    name: '6-Piece Non-Stick Pot Set',
+    description: 'Durable, easy to clean, and perfect for modern kitchens.',
+    price: 60000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Home Goods',
+    'data-ai-hint': 'cooking pots',
+  },
+  {
+    id: 'prod_006',
+    name: 'Electric Kettle',
+    description: '1.8L capacity, stainless steel, with auto-shutoff feature.',
+    price: 15000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Home Goods',
+    'data-ai-hint': 'electric kettle',
+  },
+  {
+    id: 'prod_007',
+    name: 'Golden Morn Cereal',
+    description: '500g pack of nutritious maize and soya cereal.',
+    price: 2500,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Groceries',
+    'data-ai-hint': 'cereal box',
+  },
+  {
+    id: 'prod_008',
+    name: 'Indomie Instant Noodles (Carton)',
+    description: 'Carton of 40 packs of Onion Chicken flavor instant noodles.',
+    price: 8000,
+    image: 'https://placehold.co/600x600.png',
+    category: 'Groceries',
+    'data-ai-hint': 'instant noodles',
+  },
+];
