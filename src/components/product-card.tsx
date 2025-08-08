@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -11,7 +12,8 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCart, type Product } from '@/hooks/use-cart';
-import { ShoppingCart } from 'lucide-react';
+import { Eye, ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
 
 interface ProductCardProps {
   product: Product;
@@ -41,17 +43,28 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-4">
-        <CardTitle className="mb-2 text-lg font-headline">{product.name}</CardTitle>
+        <CardTitle className="mb-2 text-lg font-headline">
+            <Link href={`/product/${product.id}`} className="hover:text-primary hover:underline">
+                {product.name}
+            </Link>
+        </CardTitle>
         <CardDescription>{product.description}</CardDescription>
       </CardContent>
       <CardFooter className="flex items-center justify-between p-4 pt-0">
         <p className="text-xl font-bold text-primary">
           {formatPrice(product.price)}
         </p>
-        <Button size="sm" onClick={() => addItem(product)}>
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Add to Cart
-        </Button>
+        <div className="flex gap-2">
+            <Button size="icon" variant="outline" asChild>
+                <Link href={`/product/${product.id}`}>
+                    <Eye />
+                </Link>
+            </Button>
+            <Button size="sm" onClick={() => addItem(product)}>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Add to Cart
+            </Button>
+        </div>
       </CardFooter>
     </Card>
   );
