@@ -1,4 +1,6 @@
 
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,10 +11,19 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Wallet, Package, LogOut, Store, Shield, Bell, BarChart3 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   // In a real app, you'd have logic to determine the user's role.
   const userRole = 'admin'; // or 'vendor' or 'consumer'
+  const router = useRouter();
+
+  const handleLogout = () => {
+    if(typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
+    router.push('/');
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -23,7 +34,7 @@ export default function DashboardPage() {
             Welcome back! Here's your overview.
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>

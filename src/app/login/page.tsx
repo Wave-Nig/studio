@@ -25,13 +25,24 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    // Simulate login
     if (email === 'wave.nig@gmail.com' && password === 'Israelite@11') {
       toast({
         title: 'Login Successful',
         description: 'Redirecting to admin dashboard...',
       });
+      // In a real app, you'd get a token from your backend
+      localStorage.setItem('auth_token', 'dummy_admin_token');
       router.push('/dashboard/admin');
-    } else {
+    } else if (email === 'consumer@wave.com' && password === 'password') {
+       toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      localStorage.setItem('auth_token', 'dummy_consumer_token');
+      router.push('/');
+    }
+    else {
       toast({
         variant: 'destructive',
         title: 'Invalid Credentials',
@@ -49,7 +60,8 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your email below to login to your account. <br />
+            (Try consumer@wave.com / password)
           </CardDescription>
         </CardHeader>
         <CardContent>
