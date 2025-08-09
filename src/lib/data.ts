@@ -1,7 +1,7 @@
 
 import type { Product } from '@/hooks/use-cart';
 import { db } from './firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, query, where, getDoc } from 'firebase/firestore';
 
 
 export const categories = [
@@ -29,14 +29,14 @@ export async function getProducts(options?: { category?: string; status?: 'pendi
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-    const productsCollection = collection(db, 'products');
-    const q = query(productsCollection, where('id', '==', id));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
+    const productRef = doc(db, 'products', id);
+    const docSnap = await getDoc(productRef);
+
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Product;
+    } else {
         return null;
     }
-    const docData = querySnapshot.docs[0];
-    return { id: docData.id, ...docData.data() } as Product;
 }
 
 
