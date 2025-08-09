@@ -38,9 +38,14 @@ export default function InventoryPage() {
 
   useEffect(() => {
     const fetchVendorProducts = async () => {
-        if (typeof window === 'undefined') return;
-        const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+        const userStr = localStorage.getItem('auth_user');
+        if (!userStr) {
+            setLoading(false);
+            // Optionally redirect to login
+            return;
+        }
         
+        const user = JSON.parse(userStr);
         if (!user || user.role !== 'vendor' || !user.uid) {
             setLoading(false);
             return;

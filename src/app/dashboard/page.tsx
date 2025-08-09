@@ -14,42 +14,56 @@ import { Wallet, Package, LogOut, Store, Shield, Bell, BarChart3 } from 'lucide-
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuthUser {
+  uid: string;
   email: string;
   role: 'admin' | 'vendor' | 'consumer';
-  vendorId?: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('auth_user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        router.push('/login');
-      }
+    const storedUser = localStorage.getItem('auth_user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      router.push('/login');
     }
+    setLoading(false);
   }, [router]);
 
   const handleLogout = async () => {
-    if(typeof window !== 'undefined') {
-      await auth.signOut();
-      localStorage.removeItem('auth_user');
-    }
+    await auth.signOut();
+    localStorage.removeItem('auth_user');
     router.push('/');
   }
 
-  if (!user) {
+  if (loading) {
     return (
-        <div className="container mx-auto px-4 py-12 text-center">
-            <p>Loading user data...</p>
+        <div className="container mx-auto px-4 py-12">
+            <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <Skeleton className="h-9 w-48" />
+                <Skeleton className="mt-2 h-5 w-64" />
+              </div>
+              <Skeleton className="h-10 w-28" />
+            </div>
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+             </div>
         </div>
     );
+  }
+
+  if (!user) {
+    return null; // or a redirect component
   }
 
   return (
@@ -109,7 +123,7 @@ export default function DashboardPage() {
         )}
         
         {/* Vendor-facing card */}
-        {(user.role === 'vendor' || user.role === 'admin') && (
+        {(user.role === 'vendor' ) && (
             <Card className="border-primary/50 md:col-span-2 lg:col-span-1">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">

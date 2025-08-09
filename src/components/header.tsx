@@ -10,6 +10,7 @@ import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/firebase';
 
 interface AuthUser {
   email: string;
@@ -21,25 +22,41 @@ export default function Header() {
   const { state } = useCart();
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('auth_user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        setUser(null);
-      }
+    setIsClient(true);
+    const storedUser = localStorage.getItem('auth_user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      setUser(null);
     }
   }, []);
 
 
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
   
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await auth.signOut();
     localStorage.removeItem('auth_user');
     setUser(null);
     router.push('/');
+    router.refresh(); // To ensure header state is updated
+  }
+
+  if (!isClient) {
+    // Render a placeholder or loading state on the server
+    return (
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-16 items-center">
+                <Logo />
+                <div className="ml-auto flex items-center gap-2">
+                    {/* Skeleton or minimal UI */}
+                </div>
+            </div>
+        </header>
+    );
   }
 
   return (

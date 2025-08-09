@@ -29,8 +29,9 @@ export default function NotificationsPage() {
     const [loading, setLoading] = useState(true);
     
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+        const userStr = localStorage.getItem('auth_user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
             if (user && user.role === 'vendor' && user.uid) {
                 const notificationsRef = collection(db, 'notifications');
                 const q = query(
@@ -52,6 +53,8 @@ export default function NotificationsPage() {
             } else {
                 setLoading(false);
             }
+        } else {
+            setLoading(false);
         }
     }, []);
 
