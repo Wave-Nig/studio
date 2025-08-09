@@ -27,35 +27,41 @@ interface Notification {
 export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     
     useEffect(() => {
         const userStr = localStorage.getItem('auth_user');
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            if (user && user.role === 'vendor' && user.uid) {
-                const notificationsRef = collection(db, 'notifications');
-                const q = query(
-                    notificationsRef, 
-                    where('vendorId', '==', user.uid),
-                    orderBy('createdAt', 'desc')
-                );
-
-                const unsubscribe = onSnapshot(q, (querySnapshot) => {
-                    const vendorNotifications = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-                    setNotifications(vendorNotifications);
-                    setLoading(false);
-                }, (error) => {
-                    console.error("Error fetching notifications:", error);
-                    setLoading(false);
-                });
-
-                return () => unsubscribe();
-            } else {
-                setLoading(false);
-            }
-        } else {
+        if (!userStr) {
+            setError('Please log in to view your notifications.');
             setLoading(false);
+            return;
         }
+
+        const user = JSON.parse(userStr);
+        if (!user || user.role !== 'vendor' || !user.uid) {
+            setError('You do not have permission to view notifications.');
+            setLoading(false);
+            return;
+        }
+
+        const notificationsRef = collection(db, 'notifications');
+        const q = query(
+            notificationsRef, 
+            where('vendorId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const vendorNotifications = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+            setNotifications(vendorNotifications);
+            setLoading(false);
+        }, (err) => {
+            console.error("Error fetching notifications:", err);
+            setError('Could not load notifications. Please try again later.');
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const markAsRead = async (id: string) => {
@@ -75,7 +81,7 @@ export default function NotificationsPage() {
        <div className="mb-8 flex items-center justify-between">
         <div>
             <h1 className="font-headline text-3xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground">You have {unreadCount} unread messages.</p>
+            {!loading && !error && <p className="text-muted-foreground">You have {unreadCount} unread messages.</p>}
         </div>
       </div>
 
@@ -88,6 +94,8 @@ export default function NotificationsPage() {
             <div className="space-y-4">
                 {loading ? (
                     <div className="text-center py-16 text-muted-foreground">Loading notifications...</div>
+                ) : error ? (
+                    <div className="text-center py-16 text-destructive">{error}</div>
                 ) : notifications.length > 0 ? (
                     notifications.map(notification => (
                         <div 

@@ -35,26 +35,34 @@ const formatPrice = (price: number) => {
 export default function InventoryPage() {
   const [vendorProducts, setVendorProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVendorProducts = async () => {
-        const userStr = localStorage.getItem('auth_user');
-        if (!userStr) {
-            setLoading(false);
-            // Optionally redirect to login
-            return;
-        }
-        
-        const user = JSON.parse(userStr);
-        if (!user || user.role !== 'vendor' || !user.uid) {
-            setLoading(false);
-            return;
-        }
+      // This logic now runs only on the client
+      const userStr = localStorage.getItem('auth_user');
+      if (!userStr) {
+        setError('You are not logged in. Please log in to see your inventory.');
+        setLoading(false);
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      if (!user || user.role !== 'vendor' || !user.uid) {
+        setError('You do not have permission to view this page.');
+        setLoading(false);
+        return;
+      }
 
-        setLoading(true);
+      try {
         const products = await getProducts({ vendorId: user.uid });
         setVendorProducts(products);
+      } catch (e) {
+        console.error(e);
+        setError('Failed to load your products. Please try again later.');
+      } finally {
         setLoading(false);
+      }
     };
 
     fetchVendorProducts();
@@ -101,6 +109,12 @@ export default function InventoryPage() {
                 <TableRow>
                     <TableCell colSpan={7} className="text-center h-24">
                         Loading your products...
+                    </TableCell>
+                </TableRow>
+              ) : error ? (
+                 <TableRow>
+                    <TableCell colSpan={7} className="text-center h-24 text-destructive">
+                        {error}
                     </TableCell>
                 </TableRow>
               ) : vendorProducts.length > 0 ? (
