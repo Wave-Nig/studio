@@ -10,61 +10,59 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, BellRing, Trash2 } from 'lucide-react';
+import { Bell, BellRing, Trash2, Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { db } from '@/lib/firebase';
+import { collection, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy } from 'firebase/firestore';
 
 interface Notification {
     id: string;
     vendorId: string;
     title: string;
     message: string;
-    date: string;
+    createdAt: { seconds: number, nanoseconds: number };
     isRead: boolean;
 }
 
 export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [loading, setLoading] = useState(true);
     
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
-            if (user && user.role === 'vendor' && user.vendorId) {
-                const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
-                const vendorNotifications = allNotifications.filter((n: Notification) => n.vendorId === user.vendorId);
-                setNotifications(vendorNotifications);
+            if (user && user.role === 'vendor' && user.uid) {
+                const notificationsRef = collection(db, 'notifications');
+                const q = query(
+                    notificationsRef, 
+                    where('vendorId', '==', user.uid),
+                    orderBy('createdAt', 'desc')
+                );
+
+                const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                    const vendorNotifications = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+                    setNotifications(vendorNotifications);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error fetching notifications:", error);
+                    setLoading(false);
+                });
+
+                return () => unsubscribe();
+            } else {
+                setLoading(false);
             }
         }
     }, []);
 
-    const markAsRead = (id: string) => {
-        const updatedNotifications = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
-        setNotifications(updatedNotifications);
-
-        if (typeof window !== 'undefined') {
-            const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
-            const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
-            if (!user || !user.vendorId) return;
-
-            const otherVendorNotifications = allNotifications.filter((n: Notification) => n.vendorId !== user.vendorId);
-            const thisVendorNotifications = allNotifications.filter((n: Notification) => n.vendorId === user.vendorId);
-            
-            const updatedThisVendorNotifications = thisVendorNotifications.map((n: Notification) => 
-                n.id === id ? { ...n, isRead: true } : n
-            );
-
-            localStorage.setItem('vendor_notifications', JSON.stringify([...otherVendorNotifications, ...updatedThisVendorNotifications]));
-        }
+    const markAsRead = async (id: string) => {
+        const notificationRef = doc(db, 'notifications', id);
+        await updateDoc(notificationRef, { isRead: true });
     };
 
-    const deleteNotification = (id: string) => {
-        const updatedNotifications = notifications.filter(n => n.id !== id);
-        setNotifications(updatedNotifications);
-        
-        if (typeof window !== 'undefined') {
-            const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
-            const remainingNotifications = allNotifications.filter((n: Notification) => n.id !== id);
-            localStorage.setItem('vendor_notifications', JSON.stringify(remainingNotifications));
-        }
+    const deleteNotification = async (id: string) => {
+        const notificationRef = doc(db, 'notifications', id);
+        await deleteDoc(notificationRef);
     };
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -81,11 +79,13 @@ export default function NotificationsPage() {
       <Card>
         <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Notifications about sales and other events.</CardDescription>
+            <CardDescription>Notifications about sales, approvals, and other events.</CardDescription>
         </CardHeader>
         <CardContent>
             <div className="space-y-4">
-                {notifications.length > 0 ? (
+                {loading ? (
+                    <div className="text-center py-16 text-muted-foreground">Loading notifications...</div>
+                ) : notifications.length > 0 ? (
                     notifications.map(notification => (
                         <div 
                             key={notification.id} 
@@ -98,12 +98,13 @@ export default function NotificationsPage() {
                                 <p className="font-semibold">{notification.title}</p>
                                 <p className="text-sm text-muted-foreground">{notification.message}</p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    {formatDistanceToNow(new Date(notification.date), { addSuffix: true })}
+                                    {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt.seconds * 1000), { addSuffix: true }) : 'Just now'}
                                 </p>
                             </div>
                             <div className="flex gap-2">
                                 {!notification.isRead && (
                                      <Button size="sm" variant="outline" onClick={() => markAsRead(notification.id)}>
+                                        <Check className="mr-2" />
                                         Mark as Read
                                      </Button>
                                 )}

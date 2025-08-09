@@ -18,7 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getProducts, type Product } from '@/lib/data';
+import { getProducts } from '@/lib/data';
+import type { Product } from '@/hooks/use-cart';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -40,21 +41,18 @@ export default function InventoryPage() {
         if (typeof window === 'undefined') return;
         const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
         
-        if (!user || user.role !== 'vendor' || !user.vendorId) {
+        if (!user || user.role !== 'vendor' || !user.uid) {
             setLoading(false);
             return;
         }
 
         setLoading(true);
-        const allProducts = await getProducts({});
-        const filtered = allProducts.filter(p => p.vendorId === user.vendorId);
-        setVendorProducts(filtered);
+        const products = await getProducts({ vendorId: user.uid });
+        setVendorProducts(products);
         setLoading(false);
     };
 
     fetchVendorProducts();
-    const interval = setInterval(fetchVendorProducts, 5000); 
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -114,7 +112,13 @@ export default function InventoryPage() {
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>
-                        <Badge variant={product.status === 'approved' ? 'default' : 'secondary'}>{product.status}</Badge>
+                        <Badge variant={
+                            product.status === 'approved' ? 'default' 
+                            : product.status === 'rejected' ? 'destructive'
+                            : 'secondary'
+                        }>
+                            {product.status}
+                        </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
                     <TableCell>{formatPrice(product.price)}</TableCell>

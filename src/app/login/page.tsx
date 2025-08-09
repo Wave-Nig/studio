@@ -45,7 +45,6 @@ export default function LoginPage() {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           role: userData.role,
-          vendorId: userData.role === 'vendor' ? firebaseUser.uid : undefined,
         };
 
         localStorage.setItem('auth_user', JSON.stringify(user));

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,11 @@ import {
 } from '@/components/ui/select';
 import { categories, addProduct } from '@/lib/data';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle, UploadCloud } from 'lucide-react';
+import { ArrowLeft, PlusCircle, UploadCloud, Wand2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { generateProductDescription } from '@/ai/flows/generate-product-description';
+
 
 const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters'),
@@ -46,13 +48,14 @@ export default function AddProductPage() {
   const router = useRouter();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [vendorId, setVendorId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
         const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
-        if (user && user.role === 'vendor' && user.vendorId) {
-            setVendorId(user.vendorId);
+        if (user && user.role === 'vendor' && user.uid) {
+            setVendorId(user.uid);
         } else {
             toast({
                 variant: 'destructive',
@@ -68,6 +71,8 @@ export default function AddProductPage() {
     register,
     handleSubmit,
     setValue,
+    getValues,
+    control,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -99,6 +104,41 @@ export default function AddProductPage() {
         setValue('image', dataUrl, { shouldValidate: true });
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    const productName = getValues('name');
+    const productCategory = getValues('category');
+
+    if (!productName || !productCategory) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please enter a product name and select a category first.',
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const result = await generateProductDescription({ productName, productCategory });
+      if (result.description) {
+        setValue('description', result.description, { shouldValidate: true });
+        toast({
+          title: 'Description Generated!',
+          description: 'The AI has generated a description for your product.',
+        });
+      }
+    } catch (error) {
+      console.error('AI description generation failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: 'Could not generate a description at this time.',
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -200,7 +240,19 @@ export default function AddProductPage() {
             </div>
 
             <div>
-              <Label htmlFor="description">Product Description</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="description">Product Description</Label>
+                    <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={handleGenerateDescription}
+                        disabled={isGenerating}
+                    >
+                       <Wand2 className="mr-2" />
+                       {isGenerating ? 'Generating...' : 'Auto-generate'}
+                    </Button>
+                </div>
               <Textarea id="description" {...register('description')} />
               {errors.description && (
                 <p className="text-sm text-destructive">{errors.description.message}</p>
@@ -224,18 +276,24 @@ export default function AddProductPage() {
               </div>
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select onValueChange={(value) => setValue('category', value, { shouldValidate: true })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                    control={control}
+                    name="category"
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                    {cat.name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
                  {errors.category && (
                   <p className="text-sm text-destructive">{errors.category.message}</p>
                 )}

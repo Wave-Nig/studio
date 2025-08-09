@@ -19,6 +19,8 @@ import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { createNotification, createOrder } from '@/lib/data';
+import { useState, useEffect } from 'react';
 
 const checkoutSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -37,12 +39,27 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
-// This is a simulation of a backend process to notify vendors.
-// In a real app, this would be an API call to a server.
-const processOrderAndNotifyVendors = (items: CartItem[], customerName: string) => {
+const processOrderAndNotifyVendors = async (items: CartItem[], customerName: string, shippingAddress: CheckoutFormValues) => {
     if (typeof window === 'undefined') return;
+    const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+    if (!user) return;
+    
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    // Group items by vendor
+    // 1. Create the main order document
+    await createOrder({
+      customerId: user.uid,
+      items: items.map(item => ({ 
+          productId: item.id, 
+          name: item.name, 
+          quantity: item.quantity, 
+          price: item.price 
+      })),
+      total: total,
+      shippingAddress: shippingAddress,
+    });
+
+    // 2. Group items by vendor and create notifications
     const itemsByVendor = items.reduce((acc, item) => {
         const vendorId = item.vendorId || 'unknown_vendor';
         if (!acc[vendorId]) {
@@ -52,23 +69,16 @@ const processOrderAndNotifyVendors = (items: CartItem[], customerName: string) =
         return acc;
     }, {} as Record<string, CartItem[]>);
 
-    // Create a notification for each vendor
     for (const vendorId in itemsByVendor) {
+        if (vendorId === 'unknown_vendor') continue;
         const vendorItems = itemsByVendor[vendorId];
         const totalValue = vendorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
         
-        const notification = {
-            id: `notif_${new Date().getTime()}_${Math.random()}`,
+        await createNotification({
             vendorId,
             title: 'New Sale!',
             message: `You sold ${vendorItems.length} product(s) to ${customerName} for a total of ${formatPrice(totalValue)}.`,
-            date: new Date().toISOString(),
-            isRead: false,
-        };
-
-        // Store notifications in localStorage for simulation
-        const existingNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
-        localStorage.setItem('vendor_notifications', JSON.stringify([notification, ...existingNotifications]));
+        });
     }
 };
 
@@ -77,6 +87,20 @@ export default function CheckoutPage() {
   const { state, dispatch } = useCart();
   const { toast } = useToast();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<{ uid: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('auth_user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        } else {
+            toast({ variant: 'destructive', title: 'Please log in to check out.'})
+            router.push('/login');
+        }
+    }
+  }, [router, toast]);
   
   const subtotal = state.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -91,16 +115,27 @@ export default function CheckoutPage() {
     resolver: zodResolver(checkoutSchema),
   });
 
-  const onSubmit = (data: CheckoutFormValues) => {
-    // Simulate processing the order and notifying vendors
-    processOrderAndNotifyVendors(state.items, data.name);
-    
-    toast({
-      title: 'Order Placed!',
-      description: "Thank you for your purchase. This is a simulation.",
-    });
-    dispatch({ type: 'CLEAR_CART' });
-    router.push('/');
+  const onSubmit = async (data: CheckoutFormValues) => {
+    setIsSubmitting(true);
+    try {
+        await processOrderAndNotifyVendors(state.items, data.name, data);
+        
+        toast({
+          title: 'Order Placed!',
+          description: "Thank you for your purchase. Your order is being processed.",
+        });
+        dispatch({ type: 'CLEAR_CART' });
+        router.push('/dashboard/orders');
+    } catch (error) {
+         toast({
+          variant: 'destructive',
+          title: 'Order Failed',
+          description: "There was a problem placing your order. Please try again.",
+        });
+        console.error(error);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -161,8 +196,8 @@ export default function CheckoutPage() {
                   )}
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={state.items.length === 0}>
-                Place Order (Simulated)
+              <Button type="submit" className="w-full" disabled={state.items.length === 0 || isSubmitting || !user}>
+                {isSubmitting ? 'Placing Order...' : 'Place Order'}
               </Button>
             </form>
           </CardContent>

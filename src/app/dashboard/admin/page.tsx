@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getProducts, updateProductStatus } from '@/lib/data';
+import { getProducts, updateProductStatus, createNotification } from '@/lib/data';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -48,13 +48,22 @@ export default function AdminPage() {
     fetchPendingProducts();
   }, []);
 
-  const handleApproval = async (productId: string, newStatus: 'approved' | 'rejected') => {
-    const productName = pendingProducts.find(p => p.id === productId)?.name;
-    await updateProductStatus(productId, newStatus);
-    setPendingProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+  const handleApproval = async (product: Product, newStatus: 'approved' | 'rejected') => {
+    await updateProductStatus(product.id, newStatus);
+    
+    // Send a notification to the vendor
+    if (product.vendorId) {
+        await createNotification({
+            vendorId: product.vendorId,
+            title: `Product ${newStatus}`,
+            message: `Your product "${product.name}" has been ${newStatus}.`
+        });
+    }
+
+    setPendingProducts(prevProducts => prevProducts.filter(p => p.id !== product.id));
     toast({
         title: `Product ${newStatus}`,
-        description: `${productName} has been ${newStatus}.`,
+        description: `${product.name} has been ${newStatus}.`,
     });
   };
 
@@ -118,7 +127,7 @@ export default function AdminPage() {
                                 size="sm" 
                                 variant="outline" 
                                 className="text-success-foreground bg-success hover:bg-success/90"
-                                onClick={() => handleApproval(product.id, 'approved')}
+                                onClick={() => handleApproval(product, 'approved')}
                             >
                                 <CheckCircle className="mr-2" />
                                 Approve
@@ -126,7 +135,7 @@ export default function AdminPage() {
                             <Button 
                                 size="sm" 
                                 variant="destructive"
-                                onClick={() => handleApproval(product.id, 'rejected')}
+                                onClick={() => handleApproval(product, 'rejected')}
                             >
                                 <XCircle className="mr-2" />
                                 Reject

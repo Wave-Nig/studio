@@ -13,6 +13,7 @@ import {
 import { Wallet, Package, LogOut, Store, Shield, Bell, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { auth } from '@/lib/firebase';
 
 interface AuthUser {
   email: string;
@@ -35,8 +36,9 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if(typeof window !== 'undefined') {
+      await auth.signOut();
       localStorage.removeItem('auth_user');
     }
     router.push('/');
@@ -98,9 +100,8 @@ export default function DashboardPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">You have 3 active orders.</p>
-                    <Button className="mt-4" variant="outline" asChild>
-                    <Link href="#">View Orders</Link>
+                    <Button className="mt-4" asChild>
+                     <Link href="/dashboard/orders">View Orders</Link>
                     </Button>
                 </CardContent>
                 </Card>
