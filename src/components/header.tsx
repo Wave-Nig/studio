@@ -29,26 +29,31 @@ export default function Header() {
     setIsClient(true);
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
-            const storedUser = localStorage.getItem('auth_user');
-            if (storedUser) {
-              setUser(JSON.parse(storedUser));
+            const storedUserStr = localStorage.getItem('auth_user');
+            if (storedUserStr) {
+              const storedUser = JSON.parse(storedUserStr);
+              // Prevent unnecessary state updates if user is already set
+              if (user?.uid !== storedUser.uid) {
+                setUser(storedUser);
+              }
             }
         } else {
-            setUser(null);
-            localStorage.removeItem('auth_user');
+            if (user !== null) {
+              setUser(null);
+              localStorage.removeItem('auth_user');
+            }
         }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
 
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
   
   const handleLogout = async () => {
     await auth.signOut();
-    localStorage.removeItem('auth_user');
-    setUser(null);
+    // The onAuthStateChanged listener will handle setting user to null and clearing localStorage
     router.push('/');
     router.refresh(); // To ensure header state is updated
   }
