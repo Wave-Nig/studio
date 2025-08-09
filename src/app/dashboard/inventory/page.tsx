@@ -31,24 +31,28 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
-// In a real app, you would fetch this for the logged in vendor
-const MOCK_VENDOR_ID = 'vendor_01';
-
 export default function InventoryPage() {
   const [vendorProducts, setVendorProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchVendorProducts = async () => {
+        if (typeof window === 'undefined') return;
+        const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+        
+        if (!user || user.role !== 'vendor' || !user.vendorId) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         const allProducts = await getProducts({});
-        const filtered = allProducts.filter(p => p.vendorId === MOCK_VENDOR_ID);
+        const filtered = allProducts.filter(p => p.vendorId === user.vendorId);
         setVendorProducts(filtered);
         setLoading(false);
     };
 
     fetchVendorProducts();
-    // Set up an interval to refresh the data periodically
     const interval = setInterval(fetchVendorProducts, 5000); 
     return () => clearInterval(interval);
   }, []);

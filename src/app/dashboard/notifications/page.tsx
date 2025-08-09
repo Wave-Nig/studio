@@ -22,39 +22,44 @@ interface Notification {
     isRead: boolean;
 }
 
-// In a real app, you would fetch notifications for the currently logged-in vendor.
-// For this simulation, we'll assume the vendor ID is 'vendor_01' and filter from localStorage.
-const MOCK_VENDOR_ID = 'vendor_01';
-
 export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
-            const vendorNotifications = allNotifications.filter((n: Notification) => n.vendorId === MOCK_VENDOR_ID);
-            setNotifications(vendorNotifications);
+            const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            if (user && user.role === 'vendor' && user.vendorId) {
+                const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
+                const vendorNotifications = allNotifications.filter((n: Notification) => n.vendorId === user.vendorId);
+                setNotifications(vendorNotifications);
+            }
         }
     }, []);
 
     const markAsRead = (id: string) => {
         const updatedNotifications = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
         setNotifications(updatedNotifications);
-        // Also update localStorage
-         if (typeof window !== 'undefined') {
+
+        if (typeof window !== 'undefined') {
             const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
-            const otherNotifications = allNotifications.filter((n: Notification) => n.vendorId !== MOCK_VENDOR_ID || n.id !== id);
-            const thisNotification = allNotifications.find((n: Notification) => n.id === id);
-            if(thisNotification) {
-                localStorage.setItem('vendor_notifications', JSON.stringify([{...thisNotification, isRead: true},...otherNotifications]));
-            }
+            const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            if (!user || !user.vendorId) return;
+
+            const otherVendorNotifications = allNotifications.filter((n: Notification) => n.vendorId !== user.vendorId);
+            const thisVendorNotifications = allNotifications.filter((n: Notification) => n.vendorId === user.vendorId);
+            
+            const updatedThisVendorNotifications = thisVendorNotifications.map((n: Notification) => 
+                n.id === id ? { ...n, isRead: true } : n
+            );
+
+            localStorage.setItem('vendor_notifications', JSON.stringify([...otherVendorNotifications, ...updatedThisVendorNotifications]));
         }
     };
 
     const deleteNotification = (id: string) => {
         const updatedNotifications = notifications.filter(n => n.id !== id);
         setNotifications(updatedNotifications);
-        // Also update localStorage
+        
         if (typeof window !== 'undefined') {
             const allNotifications = JSON.parse(localStorage.getItem('vendor_notifications') || '[]');
             const remainingNotifications = allNotifications.filter((n: Notification) => n.id !== id);

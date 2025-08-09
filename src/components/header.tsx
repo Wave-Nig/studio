@@ -11,15 +11,25 @@ import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface AuthUser {
+  email: string;
+  role: 'admin' | 'vendor' | 'consumer';
+  vendorId?: string;
+}
+
 export default function Header() {
   const { state } = useCart();
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token');
-      setIsLoggedIn(!!token);
+      const storedUser = localStorage.getItem('auth_user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        setUser(null);
+      }
     }
   }, []);
 
@@ -27,8 +37,8 @@ export default function Header() {
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
   
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    setIsLoggedIn(false);
+    localStorage.removeItem('auth_user');
+    setUser(null);
     router.push('/');
   }
 
@@ -37,13 +47,15 @@ export default function Header() {
       <div className="container flex h-16 items-center">
         <Logo />
         <nav className="ml-auto flex items-center gap-2">
-          {isLoggedIn ? (
+          {user ? (
             <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/referral">
-                  <Gift className="mr-2" /> Refer a Friend
-                </Link>
-              </Button>
+              {user.role === 'consumer' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/referral">
+                    <Gift className="mr-2" /> Refer a Friend
+                  </Link>
+                </Button>
+              )}
                <Button variant="ghost" size="icon" asChild>
                 <Link href="/dashboard" aria-label="User Profile">
                   <User className="h-5 w-5" />

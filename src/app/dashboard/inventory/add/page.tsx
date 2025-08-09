@@ -27,7 +27,7 @@ import {
 import { categories, addProduct } from '@/lib/data';
 import Link from 'next/link';
 import { ArrowLeft, PlusCircle, UploadCloud } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 const productSchema = z.object({
@@ -46,6 +46,23 @@ export default function AddProductPage() {
   const router = useRouter();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [vendorId, setVendorId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+        if (user && user.role === 'vendor' && user.vendorId) {
+            setVendorId(user.vendorId);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Access Denied',
+                description: 'You must be logged in as a vendor to add products.',
+            });
+            router.push('/login');
+        }
+    }
+  }, [router, toast]);
 
   const {
     register,
@@ -86,12 +103,20 @@ export default function AddProductPage() {
   };
 
   const onSubmit = async (data: ProductFormValues) => {
+    if (!vendorId) {
+        toast({
+            variant: 'destructive',
+            title: 'Vendor ID missing',
+            description: 'Could not find a vendor ID. Please log in again.',
+        });
+        return;
+    }
     setIsSubmitting(true);
     try {
         await addProduct({
           ...data,
           status: 'pending',
-          vendorId: 'vendor_01', // Mock vendor ID
+          vendorId: vendorId,
         });
         toast({
           title: 'Product Submitted!',
@@ -217,7 +242,7 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full" disabled={isSubmitting || !vendorId}>
               {isSubmitting ? 'Submitting...' : (
                   <>
                     <PlusCircle className="mr-2" />

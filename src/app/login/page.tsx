@@ -25,21 +25,34 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    let user;
+
     // Simulate login
     if (email === 'wave.nig@gmail.com' && password === 'Israelite@11') {
+      user = { email, role: 'admin' };
       toast({
-        title: 'Login Successful',
+        title: 'Admin Login Successful',
         description: 'Redirecting to admin dashboard...',
       });
-      // In a real app, you'd get a token from your backend
-      localStorage.setItem('auth_token', 'dummy_admin_token');
+      localStorage.setItem('auth_user', JSON.stringify(user));
       router.push('/dashboard/admin');
+
+    } else if (email === 'vendor@wave.com' && password === 'password') {
+      user = { email, role: 'vendor', vendorId: 'vendor_01' }; // Using a mock vendorId
+      toast({
+        title: 'Vendor Login Successful',
+        description: 'Redirecting to your dashboard...',
+      });
+      localStorage.setItem('auth_user', JSON.stringify(user));
+      router.push('/dashboard/inventory');
+
     } else if (email === 'consumer@wave.com' && password === 'password') {
+       user = { email, role: 'consumer' };
        toast({
         title: 'Login Successful',
         description: 'Welcome back!',
       });
-      localStorage.setItem('auth_token', 'dummy_consumer_token');
+      localStorage.setItem('auth_user', JSON.stringify(user));
       router.push('/');
     }
     else {
@@ -61,7 +74,7 @@ export default function LoginPage() {
           <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
           <CardDescription>
             Enter your email below to login to your account. <br />
-            (Try consumer@wave.com / password)
+            (Try consumer@wave.com, vendor@wave.com, or wave.nig@gmail.com with password 'password' or 'Israelite@11' for admin)
           </CardDescription>
         </CardHeader>
         <CardContent>
