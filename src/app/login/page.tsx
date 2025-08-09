@@ -45,13 +45,14 @@ export default function LoginPage() {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           role: userData.role,
+          fullName: userData.fullName,
         };
 
         localStorage.setItem('auth_user', JSON.stringify(user));
         
         toast({
           title: 'Login Successful',
-          description: `Welcome back, ${user.email}!`,
+          description: `Welcome back, ${user.fullName}!`,
         });
         
         // Redirect based on role

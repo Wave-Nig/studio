@@ -20,6 +20,7 @@ interface AuthUser {
   uid: string;
   email: string;
   role: 'admin' | 'vendor' | 'consumer';
+  fullName: string;
 }
 
 export default function DashboardPage() {
@@ -71,13 +72,17 @@ export default function DashboardPage() {
     return null; 
   }
 
+  const getFirstName = (fullName: string) => {
+    return fullName.split(' ')[0];
+  }
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="font-headline text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {user.email}!
+            Welcome back, {getFirstName(user.fullName)}!
           </p>
         </div>
         <Button variant="outline" onClick={handleLogout}>
