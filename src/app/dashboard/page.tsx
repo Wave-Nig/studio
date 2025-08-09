@@ -72,8 +72,8 @@ export default function DashboardPage() {
     return null; 
   }
 
-  const getFirstName = (fullName: string) => {
-    if (!fullName) return 'User';
+  const getFirstName = (fullName: string | undefined) => {
+    if (!fullName || fullName.trim() === '') return 'User';
     return fullName.split(' ')[0].toUpperCase();
   }
 
