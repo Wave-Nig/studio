@@ -11,16 +11,17 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import { Wallet, PlusCircle, MinusCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-const transactions = [
-  { id: 1, type: 'credit', amount: 50000, description: 'Wallet Funded', date: '2023-10-26' },
-  { id: 2, type: 'debit', amount: 15000, description: 'Purchase of Electric Kettle', date: '2023-10-25' },
-  { id: 3, type: 'debit', amount: 25000, description: 'Purchase of Ankara Gown', date: '2023-10-24' },
-  { id: 4, type: 'credit', amount: 100000, description: 'Wallet Funded', date: '2023-10-23' },
-];
+interface Transaction {
+  id: number;
+  type: 'credit' | 'debit';
+  amount: number;
+  description: string;
+  date: string;
+}
 
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -40,6 +41,17 @@ interface AuthUser {
 export default function WalletPage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const [balance, setBalance] = useState(150000);
+  const [transactions, setTransactions] = useState<Transaction[]>([
+    { id: 1, type: 'credit', amount: 50000, description: 'Wallet Funded', date: '2023-10-26' },
+    { id: 2, type: 'debit', amount: 15000, description: 'Purchase of Electric Kettle', date: '2023-10-25' },
+    { id: 3, type: 'debit', amount: 25000, description: 'Purchase of Ankara Gown', date: '2023-10-24' },
+    { id: 4, type: 'credit', amount: 100000, description: 'Wallet Funded', date: '2023-10-23' },
+  ]);
+  const [amount, setAmount] = useState('');
+
 
   useEffect(() => {
     const storedUser = localStorage.getItem('auth_user');
@@ -48,6 +60,47 @@ export default function WalletPage() {
     }
     setLoading(false);
   }, []);
+  
+  const handleFundWallet = () => {
+    const fundAmount = parseFloat(amount);
+    if (isNaN(fundAmount) || fundAmount <= 0) {
+        toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid positive number.' });
+        return;
+    }
+    setBalance(prev => prev + fundAmount);
+    setTransactions(prev => [{
+        id: Date.now(),
+        type: 'credit',
+        amount: fundAmount,
+        description: 'Wallet Funded',
+        date: new Date().toISOString().split('T')[0],
+    }, ...prev]);
+    toast({ title: 'Success', description: `${formatPrice(fundAmount)} has been added to your wallet.` });
+    setAmount('');
+  }
+
+  const handleWithdraw = () => {
+    const withdrawAmount = parseFloat(amount);
+    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+        toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid positive number.' });
+        return;
+    }
+    if (withdrawAmount > balance) {
+        toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'You cannot withdraw more than your current balance.' });
+        return;
+    }
+
+    setBalance(prev => prev - withdrawAmount);
+    setTransactions(prev => [{
+        id: Date.now(),
+        type: 'debit',
+        amount: withdrawAmount,
+        description: 'Bank Withdrawal',
+        date: new Date().toISOString().split('T')[0],
+    }, ...prev]);
+    toast({ title: 'Withdrawal Successful', description: `${formatPrice(withdrawAmount)} has been withdrawn from your wallet.` });
+    setAmount('');
+  }
 
   if (loading) {
     return <div className="container mx-auto px-4 py-12">Loading...</div>;
@@ -68,7 +121,7 @@ export default function WalletPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold">₦150,000.00</p>
+              <p className="text-4xl font-bold">{formatPrice(balance)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -81,7 +134,7 @@ export default function WalletPage() {
                         <div key={tx.id} className="flex items-center justify-between">
                             <div>
                                 <p className="font-medium">{tx.description}</p>
-                                <p className="text-sm text-muted-foreground">{tx.date}</p>
+                                <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
                             </div>
                             <p className={`font-semibold ${tx.type === 'credit' ? 'text-success' : 'text-destructive'}`}>
                                 {tx.type === 'credit' ? '+' : '-'} {formatPrice(tx.amount)}
@@ -105,12 +158,18 @@ export default function WalletPage() {
                 <CardContent>
                     <div className="space-y-2">
                         <label htmlFor="withdraw-amount" className="text-sm font-medium">Amount (₦)</label>
-                        <Input id="withdraw-amount" type="number" placeholder="e.g. 50000" />
+                        <Input 
+                            id="withdraw-amount" 
+                            type="number" 
+                            placeholder="e.g. 50000" 
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                        />
                         <p className="text-xs text-muted-foreground pt-2">Bank account details will be confirmed on the next page.</p>
                     </div>
                 </CardContent>
                 <CardFooter>
-                <Button className="w-full">
+                <Button className="w-full" onClick={handleWithdraw}>
                     <MinusCircle className="mr-2 h-4 w-4" />
                     Withdraw
                 </Button>
@@ -127,11 +186,17 @@ export default function WalletPage() {
                 <CardContent>
                     <div className="space-y-2">
                         <label htmlFor="fund-amount" className="text-sm font-medium">Amount (₦)</label>
-                        <Input id="fund-amount" type="number" placeholder="e.g. 10000" />
+                        <Input 
+                            id="fund-amount" 
+                            type="number" 
+                            placeholder="e.g. 10000" 
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                        />
                     </div>
                 </CardContent>
                 <CardFooter>
-                <Button className="w-full">
+                <Button className="w-full" onClick={handleFundWallet}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Funds
                 </Button>
