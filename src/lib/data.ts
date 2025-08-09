@@ -82,4 +82,3 @@ export async function createOrder(order: {
     });
     return docRef.id;
 }
-
