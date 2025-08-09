@@ -16,51 +16,66 @@ import Logo from '@/components/logo';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    let user;
+    setIsLoading(true);
 
-    // Simulate login
-    if (email === 'wave.nig@gmail.com' && password === 'Israelite@11') {
-      user = { email, role: 'admin' };
-      toast({
-        title: 'Admin Login Successful',
-        description: 'Redirecting to admin dashboard...',
-      });
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      router.push('/dashboard/admin');
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
 
-    } else if (email === 'vendor@wave.com' && password === 'password') {
-      user = { email, role: 'vendor', vendorId: 'vendor_01' }; // Using a mock vendorId
-      toast({
-        title: 'Vendor Login Successful',
-        description: 'Redirecting to your dashboard...',
-      });
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      router.push('/dashboard/inventory');
+      // Fetch user role from Firestore
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
 
-    } else if (email === 'consumer@wave.com' && password === 'password') {
-       user = { email, role: 'consumer' };
-       toast({
-        title: 'Login Successful',
-        description: 'Welcome back!',
-      });
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      router.push('/');
-    }
-    else {
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const user = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          role: userData.role,
+          vendorId: userData.role === 'vendor' ? firebaseUser.uid : undefined,
+        };
+
+        localStorage.setItem('auth_user', JSON.stringify(user));
+        
+        toast({
+          title: 'Login Successful',
+          description: `Welcome back, ${user.email}!`,
+        });
+        
+        // Redirect based on role
+        if (user.role === 'admin') {
+            router.push('/dashboard/admin');
+        } else if (user.role === 'vendor') {
+            router.push('/dashboard/inventory');
+        } else {
+            router.push('/');
+        }
+      } else {
+        throw new Error("User data not found in Firestore.");
+      }
+
+    } catch (error: any) {
+      console.error('Login Error:', error);
       toast({
         variant: 'destructive',
-        title: 'Invalid Credentials',
-        description: 'Please check your email and password and try again.',
+        title: 'Login Failed',
+        description: error.message || 'Please check your credentials and try again.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,8 +88,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account. <br />
-            (Try consumer@wave.com, vendor@wave.com, or wave.nig@gmail.com with password 'password' or 'Israelite@11' for admin)
+            Enter your email below to login to your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -88,6 +102,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="grid gap-2">
@@ -106,10 +121,11 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
