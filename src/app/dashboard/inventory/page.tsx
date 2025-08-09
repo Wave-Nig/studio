@@ -1,4 +1,7 @@
 
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,21 +18,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { products } from '@/lib/data';
+import { products as initialProducts, type Product } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
 const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-    }).format(price);
-  };
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+  }).format(price);
+};
+
+// In a real app, you would fetch this for the logged in vendor
+const MOCK_VENDOR_ID = 'vendor_01';
 
 export default function InventoryPage() {
-  const vendorProducts = products.slice(0, 4); // Mock: showing first 4 products as vendor's
+  const [vendorProducts, setVendorProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    // This is a workaround to ensure the component re-renders when data.ts is updated
+    // In a real app, this data would be fetched from a database.
+    const interval = setInterval(() => {
+      const filtered = initialProducts.filter(p => p.vendorId === MOCK_VENDOR_ID);
+      if (filtered.length !== vendorProducts.length) {
+        setVendorProducts(filtered);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [vendorProducts]);
+
+
+  useEffect(() => {
+    setVendorProducts(initialProducts.filter(p => p.vendorId === MOCK_VENDOR_ID));
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-12">

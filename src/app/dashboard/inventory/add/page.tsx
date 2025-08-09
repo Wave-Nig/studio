@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { categories } from '@/lib/data';
+import { categories, addProduct } from '@/lib/data';
 import Link from 'next/link';
 import { ArrowLeft, PlusCircle, UploadCloud } from 'lucide-react';
 import { useState } from 'react';
@@ -68,7 +68,7 @@ export default function AddProductPage() {
            toast({
               variant: 'destructive',
               title: 'Invalid file type',
-              description: 'Please upload an image file (jpg, png, gif).',
+              description: 'Please upload a image file (jpg, png, gif).',
           });
           return;
       }
@@ -84,8 +84,12 @@ export default function AddProductPage() {
   };
 
   const onSubmit = (data: ProductFormValues) => {
-    // In a real app, this would submit the data (including the base64 image) to your backend
-    console.log(data);
+    addProduct({
+      ...data,
+      id: `prod_${new Date().getTime()}`,
+      status: 'pending',
+      vendorId: 'vendor_01', // Mock vendor ID
+    });
     toast({
       title: 'Product Submitted!',
       description: `"${data.name}" has been submitted for admin approval.`,
@@ -126,7 +130,7 @@ export default function AddProductPage() {
                 <div className="space-y-1 text-center">
                   {imagePreview ? (
                     <div className="relative mx-auto h-40 w-40">
-                      <Image src={imagePreview} alt="Image preview" layout="fill" objectFit="cover" className="rounded-md" />
+                      <Image src={imagePreview} alt="Image preview" fill objectFit="cover" className="rounded-md" />
                     </div>
                   ) : (
                     <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />

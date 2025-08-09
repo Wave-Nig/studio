@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { products as initialProducts } from '@/lib/data';
+import { products as initialProducts, updateProductStatus } from '@/lib/data';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -33,19 +33,21 @@ const formatPrice = (price: number) => {
   };
 
 export default function AdminPage() {
-  const [pendingProducts, setPendingProducts] = useState<Product[]>(
-    initialProducts.filter(p => p.status === 'pending')
-  );
+  const [pendingProducts, setPendingProducts] = useState<Product[]>([]);
   const { toast } = useToast();
 
+  useEffect(() => {
+    setPendingProducts(initialProducts.filter(p => p.status === 'pending'));
+  }, []);
+
   const handleApproval = (productId: string, newStatus: 'approved' | 'rejected') => {
+    updateProductStatus(productId, newStatus);
     setPendingProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
     const productName = initialProducts.find(p => p.id === productId)?.name;
     toast({
         title: `Product ${newStatus}`,
         description: `${productName} has been ${newStatus}.`,
     });
-    // In a real app, you would also update the product status in your database here.
   };
 
 

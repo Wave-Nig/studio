@@ -7,7 +7,7 @@ export const categories = [
   { id: '3', name: 'Electronics' },
 ];
 
-export const products: Product[] = [
+export let products: Product[] = [
   {
     id: 'prod_001',
     name: 'Infinix Smart 8',
@@ -119,3 +119,16 @@ export const products: Product[] = [
     vendorId: 'vendor_02',
   },
 ];
+
+// This is a mock function to simulate adding a product to the database
+export function addProduct(product: Product) {
+  products.unshift(product);
+}
+
+// This is a mock function to simulate updating a product in the database
+export function updateProductStatus(productId: string, status: 'approved' | 'rejected') {
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex !== -1) {
+    products[productIndex].status = status;
+  }
+}
