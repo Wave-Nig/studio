@@ -53,6 +53,7 @@ const formatPrice = (price: number) => {
 };
 
 const formatDate = (timestamp: Timestamp) => {
+    if (!timestamp) return 'Date not available';
     return timestamp.toDate().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
@@ -63,28 +64,36 @@ const formatDate = (timestamp: Timestamp) => {
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchOrders = async () => {
             if (typeof window === 'undefined') return;
             const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
             if (!user || !user.uid) {
+                setError("Please log in to view your orders.");
                 setLoading(false);
                 return;
             }
 
             setLoading(true);
-            const ordersRef = collection(db, 'orders');
-            const q = query(
-                ordersRef, 
-                where('customerId', '==', user.uid),
-                orderBy('createdAt', 'desc')
-            );
-            
-            const querySnapshot = await getDocs(q);
-            const userOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-            setOrders(userOrders);
-            setLoading(false);
+            try {
+                const ordersRef = collection(db, 'orders');
+                const q = query(
+                    ordersRef, 
+                    where('customerId', '==', user.uid),
+                    orderBy('createdAt', 'desc')
+                );
+                
+                const querySnapshot = await getDocs(q);
+                const userOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+                setOrders(userOrders);
+            } catch (err) {
+                console.error("Error fetching orders: ", err);
+                setError("Could not load your orders. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchOrders();
@@ -101,6 +110,8 @@ export default function OrdersPage() {
                 <CardContent>
                     {loading ? (
                         <p className="text-muted-foreground text-center py-8">Loading your orders...</p>
+                    ) : error ? (
+                        <p className="text-destructive text-center py-8">{error}</p>
                     ) : orders.length > 0 ? (
                         <Accordion type="single" collapsible className="w-full">
                            {orders.map(order => (
