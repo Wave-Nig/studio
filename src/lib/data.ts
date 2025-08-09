@@ -58,6 +58,11 @@ export async function updateProductStatus(productId: string, status: 'approved' 
   });
 }
 
+export async function updateUser(userId: string, data: { fullName: string; email: string; phone: string; }) {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, data);
+}
+
 
 export async function createNotification(notification: { vendorId: string; title: string; message: string; }) {
     const notificationsCollection = collection(db, 'notifications');

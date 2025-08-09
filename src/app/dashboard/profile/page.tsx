@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Save } from 'lucide-react';
+import { updateUser } from '@/lib/data';
 
 
 interface AuthUser {
@@ -46,23 +47,34 @@ export default function ProfilePage() {
 
     const handleSaveChanges = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
+        
         setIsSaving(true);
-        // Here you would typically call an API to update user details in Firestore
-        // For now, we'll just simulate a save and show a toast
-        console.log("Saving user data:", user);
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Update local storage as well
-        if (user) {
+        try {
+            const userDataToUpdate = {
+                fullName: user.fullName,
+                email: user.email,
+                phone: user.phone,
+            };
+            await updateUser(user.uid, userDataToUpdate);
+            
+            // Update local storage as well
             localStorage.setItem('auth_user', JSON.stringify(user));
-        }
 
-        toast({
-            title: "Profile Updated",
-            description: "Your information has been successfully saved.",
-        });
-        setIsSaving(false);
+            toast({
+                title: "Profile Updated",
+                description: "Your information has been successfully saved.",
+            });
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: "Update Failed",
+                description: "There was a problem saving your profile. Please try again.",
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
