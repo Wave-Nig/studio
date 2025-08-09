@@ -28,10 +28,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // This effect runs only on the client
     const storedUser = localStorage.getItem('auth_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
+      // If no user is found, redirect to login.
+      // This prevents rendering a dashboard for a logged-out user.
       router.push('/login');
     }
     setLoading(false);
@@ -63,7 +66,9 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return null; // or a redirect component
+    // This case handles the brief moment after loading but before redirection,
+    // or if the user data is somehow invalid.
+    return null; 
   }
 
   return (
