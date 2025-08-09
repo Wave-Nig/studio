@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Wallet, Package, LogOut, Store, Shield, Bell, BarChart3 } from 'lucide-react';
+import { Wallet, Package, LogOut, Store, Shield, Bell, BarChart3, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
@@ -25,7 +25,7 @@ interface AuthUser {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthTernary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,49 +93,64 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* General cards for all users */}
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                My Profile
+                </CardTitle>
+                <CardDescription>
+                View and edit your personal information.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button className="mt-4" asChild>
+                <Link href="/dashboard/profile">Manage Profile</Link>
+                </Button>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-primary" />
+                My Wallet
+                </CardTitle>
+                <CardDescription>
+                View your balance and manage funds.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button className="mt-4" asChild>
+                <Link href="/dashboard/wallet">Manage Wallet</Link>
+                </Button>
+            </CardContent>
+        </Card>
+
+
         {/* Consumer-facing cards */}
         {(user.role === 'consumer') && (
-            <>
-                <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-primary" />
-                    My Wallet
-                    </CardTitle>
-                    <CardDescription>
-                    View your balance and transaction history.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-3xl font-bold">₦150,000.00</p>
-                    <Button className="mt-4" asChild>
-                    <Link href="/dashboard/wallet">Manage Wallet</Link>
-                    </Button>
-                </CardContent>
-                </Card>
-
-                <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-primary" />
-                    My Orders
-                    </CardTitle>
-                    <CardDescription>
-                    Track your recent orders and view purchase history.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button className="mt-4" asChild>
-                     <Link href="/dashboard/orders">View Orders</Link>
-                    </Button>
-                </CardContent>
-                </Card>
-            </>
+            <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
+                My Orders
+                </CardTitle>
+                <CardDescription>
+                Track your recent orders and view purchase history.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button className="mt-4" asChild>
+                    <Link href="/dashboard/orders">View Orders</Link>
+                </Button>
+            </CardContent>
+            </Card>
         )}
         
         {/* Vendor-facing card */}
         {(user.role === 'vendor' ) && (
-            <Card className="border-primary/50 md:col-span-2 lg:col-span-1">
+            <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                 <Store className="h-5 w-5 text-primary" />

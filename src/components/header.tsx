@@ -87,7 +87,7 @@ export default function Header() {
                 </Button>
               )}
                <Button variant="ghost" size="icon" asChild>
-                <Link href="/dashboard" aria-label="User Profile">
+                <Link href="/dashboard" aria-label="Dashboard">
                   <User className="h-5 w-5" />
                 </Link>
               </Button>
