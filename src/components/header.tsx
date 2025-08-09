@@ -11,11 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 interface AuthUser {
-  email: string;
+  uid: string;
+  email: string | null;
   role: 'admin' | 'vendor' | 'consumer';
-  vendorId?: string;
 }
 
 export default function Header() {
@@ -26,12 +27,19 @@ export default function Header() {
   
   useEffect(() => {
     setIsClient(true);
-    const storedUser = localStorage.getItem('auth_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      setUser(null);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+            const storedUser = localStorage.getItem('auth_user');
+            if (storedUser) {
+              setUser(JSON.parse(storedUser));
+            }
+        } else {
+            setUser(null);
+            localStorage.removeItem('auth_user');
+        }
+    });
+
+    return () => unsubscribe();
   }, []);
 
 
