@@ -13,6 +13,13 @@ interface ProductPageProps {
   };
 }
 
+export async function generateStaticParams() {
+  const approvedProducts = products.filter(p => p.status === 'approved');
+  return approvedProducts.map((product) => ({
+    id: product.id,
+  }));
+}
+
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
