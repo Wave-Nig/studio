@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { products as initialProducts, updateProductStatus } from '@/lib/data';
+import { getProducts, updateProductStatus } from '@/lib/data';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -35,15 +35,23 @@ const formatPrice = (price: number) => {
 export default function AdminPage() {
   const [pendingProducts, setPendingProducts] = useState<Product[]>([]);
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+
+  const fetchPendingProducts = async () => {
+    setLoading(true);
+    const products = await getProducts({ status: 'pending' });
+    setPendingProducts(products);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    setPendingProducts(initialProducts.filter(p => p.status === 'pending'));
+    fetchPendingProducts();
   }, []);
 
-  const handleApproval = (productId: string, newStatus: 'approved' | 'rejected') => {
-    updateProductStatus(productId, newStatus);
+  const handleApproval = async (productId: string, newStatus: 'approved' | 'rejected') => {
+    const productName = pendingProducts.find(p => p.id === productId)?.name;
+    await updateProductStatus(productId, newStatus);
     setPendingProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
-    const productName = initialProducts.find(p => p.id === productId)?.name;
     toast({
         title: `Product ${newStatus}`,
         description: `${productName} has been ${newStatus}.`,
@@ -80,47 +88,54 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pendingProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.image}
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>{formatPrice(product.price)}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{product.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                        <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-success-foreground bg-success hover:bg-success/90"
-                            onClick={() => handleApproval(product.id, 'approved')}
-                        >
-                            <CheckCircle className="mr-2" />
-                            Approve
-                        </Button>
-                         <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleApproval(product.id, 'rejected')}
-                         >
-                            <XCircle className="mr-2" />
-                            Reject
-                        </Button>
-                    </div>
-                  </TableCell>
+              {loading ? (
+                 <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                       Loading pending products...
+                    </TableCell>
                 </TableRow>
-              ))}
-               {pendingProducts.length === 0 && (
+              ) : pendingProducts.length > 0 ? (
+                pendingProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="hidden sm:table-cell">
+                        <Image
+                          alt={product.name}
+                          className="aspect-square rounded-md object-cover"
+                          height="64"
+                          src={product.image}
+                          width="64"
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>{formatPrice(product.price)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{product.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                            <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-success-foreground bg-success hover:bg-success/90"
+                                onClick={() => handleApproval(product.id, 'approved')}
+                            >
+                                <CheckCircle className="mr-2" />
+                                Approve
+                            </Button>
+                            <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleApproval(product.id, 'rejected')}
+                            >
+                                <XCircle className="mr-2" />
+                                Reject
+                            </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                ))
+               ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center h-24">
                         No pending products to review.

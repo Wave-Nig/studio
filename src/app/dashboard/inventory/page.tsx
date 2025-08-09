@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { products as initialProducts, type Product } from '@/lib/data';
+import { getProducts, type Product } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -36,22 +36,21 @@ const MOCK_VENDOR_ID = 'vendor_01';
 
 export default function InventoryPage() {
   const [vendorProducts, setVendorProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This is a workaround to ensure the component re-renders when data.ts is updated
-    // In a real app, this data would be fetched from a database.
-    const interval = setInterval(() => {
-      const filtered = initialProducts.filter(p => p.vendorId === MOCK_VENDOR_ID);
-      if (filtered.length !== vendorProducts.length) {
+    const fetchVendorProducts = async () => {
+        setLoading(true);
+        const allProducts = await getProducts({});
+        const filtered = allProducts.filter(p => p.vendorId === MOCK_VENDOR_ID);
         setVendorProducts(filtered);
-      }
-    }, 500);
+        setLoading(false);
+    };
+
+    fetchVendorProducts();
+    // Set up an interval to refresh the data periodically
+    const interval = setInterval(fetchVendorProducts, 5000); 
     return () => clearInterval(interval);
-  }, [vendorProducts]);
-
-
-  useEffect(() => {
-    setVendorProducts(initialProducts.filter(p => p.vendorId === MOCK_VENDOR_ID));
   }, []);
 
   return (
@@ -90,33 +89,47 @@ export default function InventoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vendorProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.image}
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === 'approved' ? 'default' : 'secondary'}>{product.status}</Badge>
-                  </TableCell>
-                  <TableCell>{formatPrice(product.price)}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {product.category}
-                  </TableCell>
-                  <TableCell>
-                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Toggle menu</span>
-                    </Button>
-                  </TableCell>
+              {loading ? (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                        Loading your products...
+                    </TableCell>
                 </TableRow>
-              ))}
+              ) : vendorProducts.length > 0 ? (
+                vendorProducts.map((product) => (
+                    <TableRow key={product.id}>
+                    <TableCell className="hidden sm:table-cell">
+                        <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.image}
+                        width="64"
+                        />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>
+                        <Badge variant={product.status === 'approved' ? 'default' : 'secondary'}>{product.status}</Badge>
+                    </TableCell>
+                    <TableCell>{formatPrice(product.price)}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                        {product.category}
+                    </TableCell>
+                    <TableCell>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Toggle menu</span>
+                        </Button>
+                    </TableCell>
+                    </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                        You have not added any products yet.
+                    </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -124,3 +137,4 @@ export default function InventoryPage() {
     </div>
   );
 }
+

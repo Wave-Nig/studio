@@ -1,20 +1,32 @@
 
 'use client';
 
-import { useState } from 'react';
-import { products, categories } from '@/lib/data';
+import { useState, useEffect } from 'react';
+import { getProducts, categories } from '@/lib/data';
+import type { Product } from '@/hooks/use-cart';
 import ProductCard from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const approvedProducts = products.filter(p => p.status === 'approved');
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const approvedProducts = await getProducts({ status: 'approved' });
+      setProducts(approvedProducts);
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
 
-  const filteredProducts = approvedProducts
+  const filteredProducts = products
     .filter(product => {
       return selectedCategory === 'All' || product.category === selectedCategory;
     })
@@ -64,8 +76,13 @@ export default function Home() {
               ))}
             </div>
         </div>
-
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                    <Skeleton key={i} className="h-96 w-full" />
+                ))}
+            </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />

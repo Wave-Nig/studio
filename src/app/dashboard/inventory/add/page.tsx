@@ -44,6 +44,7 @@ export default function AddProductPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -83,18 +84,29 @@ export default function AddProductPage() {
     }
   };
 
-  const onSubmit = (data: ProductFormValues) => {
-    addProduct({
-      ...data,
-      id: `prod_${new Date().getTime()}`,
-      status: 'pending',
-      vendorId: 'vendor_01', // Mock vendor ID
-    });
-    toast({
-      title: 'Product Submitted!',
-      description: `"${data.name}" has been submitted for admin approval.`,
-    });
-    router.push('/dashboard/inventory');
+  const onSubmit = async (data: ProductFormValues) => {
+    setIsSubmitting(true);
+    try {
+        await addProduct({
+          ...data,
+          status: 'pending',
+          vendorId: 'vendor_01', // Mock vendor ID
+        });
+        toast({
+          title: 'Product Submitted!',
+          description: `"${data.name}" has been submitted for admin approval.`,
+        });
+        router.push('/dashboard/inventory');
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Submission Failed',
+            description: 'There was an error submitting your product. Please try again.',
+        });
+        console.error(error);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -197,9 +209,13 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              <PlusCircle className="mr-2" />
-              Submit for Approval
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : (
+                  <>
+                    <PlusCircle className="mr-2" />
+                    Submit for Approval
+                  </>
+              )}
             </Button>
           </form>
         </CardContent>
