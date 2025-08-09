@@ -10,15 +10,15 @@ interface ProductPageProps {
 }
 
 export async function generateStaticParams() {
-  // Since Firestore queries require async operations, we fetch the products here.
-  // In a larger app, you might want to cache this or find a more efficient way.
+  // Fetch all products with status 'approved' to generate static pages for them.
   const products = await getProducts({ status: 'approved' });
   
-  if (!products) {
+  // If no products are found, return an empty array.
+  if (!products || products.length === 0) {
     return [];
   }
 
-  // Generate a param for each product ID
+  // Map the product IDs into the format Next.js expects for params.
   return products.map((product) => ({
     id: product.id,
   }));
