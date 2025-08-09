@@ -54,7 +54,9 @@ export default function ProfilePage() {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         // Update local storage as well
-        localStorage.setItem('auth_user', JSON.stringify(user));
+        if (user) {
+            localStorage.setItem('auth_user', JSON.stringify(user));
+        }
 
         toast({
             title: "Profile Updated",
@@ -116,15 +118,15 @@ export default function ProfilePage() {
                 <form onSubmit={handleSaveChanges} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="fullName">Full Name</Label>
-                        <Input id="fullName" value={user.fullName} onChange={handleInputChange} />
+                        <Input id="fullName" value={user.fullName || ''} onChange={handleInputChange} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" value={user.email} onChange={handleInputChange} />
+                        <Input id="email" type="email" value={user.email || ''} onChange={handleInputChange} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
-                        <Input id="phone" type="tel" value={user.phone} onChange={handleInputChange} placeholder="e.g. 08012345678" />
+                        <Input id="phone" type="tel" value={user.phone || ''} onChange={handleInputChange} placeholder="e.g. 08012345678" />
                         {/* We would add OTP verification logic here */}
                     </div>
 
