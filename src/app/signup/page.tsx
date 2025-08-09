@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -33,6 +34,21 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center space-x-2">
+                <div className={`flex items-center gap-2 transition-colors ${!isVendor ? 'text-primary' : 'text-muted-foreground'}`}>
+                  <User className="h-5 w-5" />
+                  <Label htmlFor="role-switch">I'm a Consumer</Label>
+                </div>
+              </div>
+              <Switch id="role-switch" checked={isVendor} onCheckedChange={setIsVendor} />
+              <div className="flex items-center space-x-2">
+                <div className={`flex items-center gap-2 transition-colors ${isVendor ? 'text-primary' : 'text-muted-foreground'}`}>
+                  <Store className="h-5 w-5" />
+                  <Label htmlFor="role-switch">I'm a Vendor</Label>
+                </div>
+              </div>
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="full-name">Full Name</Label>
               <Input id="full-name" placeholder="Adebayo Adewale" required />
@@ -50,21 +66,14 @@ export default function SignupPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" />
             </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="flex items-center space-x-2">
-                <div className={`flex items-center gap-2 transition-colors ${!isVendor ? 'text-primary' : 'text-muted-foreground'}`}>
-                  <User className="h-5 w-5" />
-                  <Label htmlFor="role-switch">I'm a Consumer</Label>
-                </div>
+
+            {!isVendor && (
+              <div className="grid gap-2">
+                <Label htmlFor="referral-code">Referral Code (Optional)</Label>
+                <Input id="referral-code" placeholder="Enter referral code" />
               </div>
-              <Switch id="role-switch" checked={isVendor} onCheckedChange={setIsVendor} />
-              <div className="flex items-center space-x-2">
-                <div className={`flex items-center gap-2 transition-colors ${isVendor ? 'text-primary' : 'text-muted-foreground'}`}>
-                  <Store className="h-5 w-5" />
-                  <Label htmlFor="role-switch">I'm a Vendor</Label>
-                </div>
-              </div>
-            </div>
+            )}
+            
             <Button type="submit" className="w-full">
               Create an account
             </Button>
