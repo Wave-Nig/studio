@@ -14,6 +14,14 @@ const formatPrice = (price: number) => {
 };
 
 export default function ProductView({ product }: { product: Product }) {
+  const stockStatus = product.stock 
+    ? product.stock > 0 
+        ? product.stock > 5 
+            ? 'In Stock' 
+            : `Only ${product.stock} left!`
+        : 'Out of Stock'
+    : 'Not Managed';
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-12">
       <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
@@ -34,9 +42,14 @@ export default function ProductView({ product }: { product: Product }) {
             <h1 className="font-headline text-4xl font-bold">
               {product.name}
             </h1>
-            <p className="text-2xl font-semibold text-primary">
-              {formatPrice(product.price)}
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-2xl font-semibold text-primary">
+                {formatPrice(product.price)}
+              </p>
+              <Badge variant={product.stock && product.stock > 0 ? 'default' : 'destructive'}>
+                {stockStatus}
+              </Badge>
+            </div>
           </div>
           
           <p className="text-muted-foreground">
@@ -44,7 +57,7 @@ export default function ProductView({ product }: { product: Product }) {
           </p>
 
           <div className="flex items-center gap-4">
-            <AddToCartButton product={product} />
+            <AddToCartButton product={product} disabled={product.stock === 0} />
           </div>
 
            <div className="rounded-lg border p-4">

@@ -81,6 +81,7 @@ export default function InventoryPage() {
                 </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Stock</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead className="hidden md:table-cell">Category</TableHead>
                 <TableHead>
@@ -91,7 +92,7 @@ export default function InventoryPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
+                    <TableCell colSpan={7} className="text-center h-24">
                         Loading your products...
                     </TableCell>
                 </TableRow>
@@ -111,6 +112,7 @@ export default function InventoryPage() {
                     <TableCell>
                         <Badge variant={product.status === 'approved' ? 'default' : 'secondary'}>{product.status}</Badge>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
                     <TableCell>{formatPrice(product.price)}</TableCell>
                     <TableCell className="hidden md:table-cell">
                         {product.category}
@@ -125,7 +127,7 @@ export default function InventoryPage() {
                 ))
               ) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
+                    <TableCell colSpan={7} className="text-center h-24">
                         You have not added any products yet.
                     </TableCell>
                 </TableRow>
@@ -137,4 +139,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-

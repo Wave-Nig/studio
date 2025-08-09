@@ -1,10 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import Logo from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User } from 'lucide-react';
+import { ShoppingCart, User, Gift } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 
@@ -18,6 +19,11 @@ export default function Header() {
         <Logo />
         <nav className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
+            <Link href="/referral">
+              <Gift className="mr-2" /> Refer a Friend
+            </Link>
+          </Button>
+           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Login</Link>
           </Button>
           <Button size="sm" asChild>

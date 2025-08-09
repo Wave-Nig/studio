@@ -11,6 +11,7 @@ export interface Product {
   price: number;
   image: string;
   category: string;
+  stock?: number;
   status?: 'pending' | 'approved' | 'rejected';
   'data-ai-hint'?: string;
   vendorId?: string;

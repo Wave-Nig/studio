@@ -34,6 +34,7 @@ const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.coerce.number().min(1, 'Price must be a positive number'),
+  stock: z.coerce.number().min(0, 'Stock cannot be negative'),
   category: z.string({ required_error: 'Please select a category.' }),
   image: z.string().min(1, 'Please upload an image.'),
 });
@@ -181,12 +182,19 @@ export default function AddProductPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <div>
                 <Label htmlFor="price">Price (NGN)</Label>
                 <Input id="price" type="number" {...register('price')} />
                 {errors.price && (
                   <p className="text-sm text-destructive">{errors.price.message}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="stock">Stock Quantity</Label>
+                <Input id="stock" type="number" {...register('stock')} defaultValue="0"/>
+                {errors.stock && (
+                  <p className="text-sm text-destructive">{errors.stock.message}</p>
                 )}
               </div>
               <div>
